@@ -20,9 +20,6 @@ The database starts off empty.  You can add people to the database by POSTing JS
   "age": <Integer>
 }
 ```
-to the
-- localhost:9000/backdoor
-
-endpoint
+to the `localhost:9000/backdoor` endpoint.
 
 Note that the application will refresh its cache of people every 30 seconds, so people added through this endpoint might not be immediately visible to the other endpoints.

@@ -6,6 +6,7 @@ import model.Person
 import play.api.Logger
 
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 
 class PersonActor @Inject() (personRepository: PersonRepository)(implicit executionContext: ExecutionContext) extends Actor {
   import PersonActor._
@@ -23,17 +24,19 @@ class PersonActor @Inject() (personRepository: PersonRepository)(implicit execut
       sender() ! store.values.toSeq
     case ReloadFromDatabase =>
       logger.debug("Refreshing person store from database")
-      store = scala.collection.mutable.HashMap.empty
       personRepository.getAll
-        .map { personList =>
-          personList foreach { person =>
-            person.id match {
-              case Some(i) => store += i -> person
-              case None => ()
-            }
+          .onComplete {
+            case Success(personSeq) =>
+              store = scala.collection.mutable.HashMap.empty
+              personSeq foreach { person =>
+                person.id match {
+                  case Some(i) => store += i -> person
+                  case None => ()
+                }
+              }
+            case Failure(error) =>
+              logger.error(s"Refresh of person cache failed with $error")
           }
-          ()
-        }
     case _ => ()
   }
 
